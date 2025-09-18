@@ -37,6 +37,10 @@ RUN apt-get update -y && \
     chown $SHINY_USER:$SHINY_USER /home/$SHINY_USER/.ssh && \
     chmod 0700 /home/$SHINY_USER/.ssh
 
+# Install sudo and grant shinyproxy passwordless sudo access
+RUN apt-get install -y sudo && \
+    echo "shinyproxy ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
 EXPOSE 22
 
 USER $SHINY_USER
