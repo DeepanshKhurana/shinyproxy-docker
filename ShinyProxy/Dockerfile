@@ -26,6 +26,19 @@ RUN useradd -c 'shinyproxy user' -m -d /home/$SHINY_USER -s /sbin/nologin $SHINY
 COPY --from=builder --chown=$SHINY_USER:$SHINY_USER /opt/shinyproxy/ /opt/shinyproxy/
 
 WORKDIR /opt/shinyproxy
+
+# Install openssh-server and setup SSH for shinyproxy user
+USER root
+RUN apt-get update -y && \
+    apt-get install -y openssh-server && \
+    mkdir -p /var/run/sshd && \
+    usermod -s /bin/bash $SHINY_USER && \
+    mkdir -p /home/$SHINY_USER/.ssh && \
+    chown $SHINY_USER:$SHINY_USER /home/$SHINY_USER/.ssh && \
+    chmod 0700 /home/$SHINY_USER/.ssh
+
+EXPOSE 22
+
 USER $SHINY_USER
 
 CMD ["java", "-Dsun.net.inetaddr.ttl=5", "-XX:MaxRAMPercentage=50.0", "-XX:MinRAMPercentage=20.0", "-XX:+ExitOnOutOfMemoryError", "-jar", "/opt/shinyproxy/shinyproxy.jar", "--spring.jmx.enabled=false", "--spring.config.location=/opt/shinyproxy/application.yml"]
